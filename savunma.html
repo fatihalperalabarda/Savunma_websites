@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Savunma Sistemleri – Teknolojik Vitrin (Demo)</title>
+<style>
+  :root{
+    --bg:#040611;
+    --card:#0b1024;
+    --muted:#9fb3ff;
+    --text:#e9eeff;
+    --accent:#5ee6ff;
+    --accent2:#7c5cff;
+    --danger:#ff7b7b;
+    --glass:rgba(255,255,255,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font:500 16px/1.6 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto;
+    color:var(--text); background:var(--bg); overflow-x:hidden;
+  }
+
+  /* ====== Futuristic animated background (no images) ====== */
+  .scene{
+    position:fixed; inset:0; z-index:-1; overflow:hidden;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(124,92,255,.25), transparent 60%),
+      radial-gradient(900px 500px at 10% 110%, rgba(94,230,255,.18), transparent 60%),
+      linear-gradient(180deg, #050716 0%, #050716 60%, #040611 100%);
+  }
+  /* moving grid */
+  .grid{
+    position:absolute; inset:-200vmax; opacity:.09; filter:drop-shadow(0 0 6px #7c5cff55);
+    background:
+      linear-gradient(90deg, #8aa0ff 1px, transparent 1px) 0 0/60px 60px,
+      linear-gradient(0deg , #8aa0ff 1px, transparent 1px) 0 0/60px 60px;
+    transform:perspective(800px) rotateX(65deg) translateY(25%) scale(1.1);
+    animation:gridMove 18s linear infinite;
+  }
+  @keyframes gridMove{
+    from{transform:perspective(800px) rotateX(65deg) translateY(25%) translateX(0)}
+    to{transform:perspective(800px) rotateX(65deg) translateY(25%) translateX(-60px)}
+  }
+  /* floating pulses */
+  .blob{position:absolute; width:520px; height:520px; border-radius:50%;
+    filter: blur(90px); opacity:.25; mix-blend:screen;}
+  .b1{left:-120px; top:10%; background:#7c5cff; animation:float 12s ease-in-out infinite}
+  .b2{right:-140px; bottom:8%; background:#5ee6ff; animation:float 14s ease-in-out infinite reverse}
+  @keyframes float{50%{transform:translateY(-18px) translateX(10px)}}
+
+  /* ====== Layout ====== */
+  header{
+    position:sticky; top:0; z-index:5; backdrop-filter:saturate(1.4) blur(10px);
+    background:linear-gradient(180deg, rgba(8,12,30,.85), rgba(8,12,30,.55));
+    border-bottom:1px solid #ffffff14;
+  }
+  .nav{max-width:1100px; margin:auto; display:flex; gap:14px; align-items:center; padding:14px 18px;}
+  .brand{display:flex; gap:10px; align-items:center; font-weight:700; letter-spacing:.3px}
+  .brand .mark{width:28px; height:28px; border-radius:8px;
+    background:conic-gradient(from 210deg, var(--accent2), var(--accent));
+    box-shadow:0 0 18px #7c5cff55 inset, 0 0 18px #5ee6ff55;}
+  .grow{flex:1}
+  .pill{
+    background:var(--glass); border:1px solid #ffffff1a; color:var(--text);
+    padding:10px 12px; border-radius:14px; outline:none; width:100%; max-width:340px;
+  }
+  .filters{display:flex; gap:8px; flex-wrap:wrap}
+  .chip{
+    padding:8px 12px; border-radius:999px; border:1px solid #ffffff1a; background:var(--glass);
+    cursor:pointer; font-size:14px; transition:.2s; user-select:none;
+  }
+  .chip.active,.chip:hover{border-color:#7c5cff66; box-shadow:0 0 16px #7c5cff33 inset; color:#cfe2ff}
+
+  main{max-width:1100px; margin:20px auto 60px; padding:0 18px}
+  .gridCards{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px}
+
+  .card{
+    position:relative; background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+    border:1px solid #ffffff12; border-radius:18px; padding:16px; overflow:hidden; isolation:isolate;
+    transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .card::after{
+    content:""; position:absolute; inset:-1px; border-radius:18px;
+    background:radial-gradient(400px 120px at 20% -10%, #7c5cff22, transparent 60%);
+    z-index:-1;
+  }
+  .card:hover{transform:translateY(-4px); border-color:#7c5cff44; box-shadow:0 8px 30px #00000066}
+  .title{font-weight:700; letter-spacing:.2px; margin:10px 0 4px}
+  .tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+  .tag{
+    font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid #ffffff1a; color:#cfe2ff66;
+  }
+  .btnRow{display:flex; gap:8px; margin-top:12px}
+  .btn{
+    padding:10px 12px; border-radius:12px; border:1px solid #ffffff1a; background:var(--glass);
+    color:var(--text); cursor:pointer; transition:.2s; flex:1; text-align:center;
+  }
+  .btn:hover{border-color:#5ee6ff88; box-shadow:0 0 16px #5ee6ff33 inset}
+  .thumb{
+    height:140px; border-radius:12px; display:grid; place-items:center; overflow:hidden;
+    background:linear-gradient(135deg, #1a2144, #0f1533);
+    border:1px solid #ffffff12;
+  }
+  /* minimalist inline “icons” */
+  svg{display:block}
+
+  /* ====== Modal ====== */
+  .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:50}
+  .modal.open{display:flex}
+  .glass{
+    position:absolute; inset:0; backdrop-filter:blur(10px) saturate(1.2);
+    background:rgba(3,6,20,.6);
+  }
+  .sheet{
+    position:relative; width:min(880px,92vw); border-radius:20px; overflow:hidden;
+    border:1px solid #ffffff20; background:linear-gradient(180deg, #0b1026, #070b1b);
+    box-shadow:0 20px 80px #0009;
+    animation:pop .18s ease;
+  }
+  @keyframes pop{from{opacity:.7; transform:translateY(6px) scale(.98)}}
+  .sheetHead{display:flex; padding:14px 16px; align-items:center; gap:12px; border-bottom:1px solid #ffffff14}
+  .x{margin-left:auto; cursor:pointer; padding:6px 10px; border-radius:10px; border:1px solid #ffffff14; background:var(--glass)}
+  .sheetBody{display:grid; grid-template-columns:1fr 1.2fr; gap:18px; padding:16px}
+  .heroBox{border:1px solid #ffffff12; border-radius:14px; overflow:hidden; background:linear-gradient(135deg,#121a3c,#0a0f27)}
+  .specs{display:grid; gap:8px}
+  .spec{display:flex; justify-content:space-between; gap:12px; background:var(--glass); border:1px solid #ffffff12; padding:10px 12px; border-radius:12px}
+  .muted{color:#cfe2ff99; font-size:13px}
+  .label{font:600 12px/1 ui-sans-serif; letter-spacing:.3px; text-transform:uppercase; color:#cfe2ffaa}
+  .sec{margin-top:10px}
+  .ctaRow{display:flex; gap:10px; margin-top:12px}
+  .cta{flex:1; padding:12px; border-radius:12px; border:1px solid #ffffff18; background:linear-gradient(180deg,#16204a,#0e1433); cursor:pointer}
+  .cta:hover{border-color:#7c5cff66; box-shadow:0 0 20px #7c5cff30 inset}
+  .small{font-size:12px; color:#cfe2ff88}
+  footer{max-width:1100px; margin:24px auto 48px; padding:0 18px; color:#cfe2ff88; font-size:14px}
+
+  /* responsive */
+  @media (max-width:860px){ .sheetBody{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+  <!-- Animated techno background -->
+  <div class="scene">
+    <div class="grid"></div>
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+  </div>
+
+  <header>
+    <div class="nav">
+      <div class="brand"><div class="mark"></div> Turkish Defence Systems</div>
+      <div class="grow"></div>
+      <input id="search" class="pill" placeholder="Ara: TB2, Akıncı, Hisar, Atmaca, MİLGEM…" />
+    </div>
+    <div class="nav" style="padding-top:0">
+      <div class="filters">
+        <span class="chip active" data-cat="all">Tümü</span>
+        <span class="chip" data-cat="hava">Hava</span>
+        <span class="chip" data-cat="kara">Kara</span>
+        <span class="chip" data-cat="deniz">Deniz</span>
+        <span class="chip" data-cat="füze">Füze/Savunma</span>
+        <span class="chip" data-cat="sensör">Radar/Sensör</span>
+        <span class="chip" data-cat="c2">C2/Komuta</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="cards" class="gridCards"></div>
+  </main>
+
+  <footer>
+    © 2025 Turkish Defence Systems – Demo vitrini. Bu sayfa yalnızca tanıtım amaçlıdır.
+  </footer>
+
+  <!-- Modal -->
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="glass"></div>
+    <div class="sheet" role="dialog" aria-modal="true">
+      <div class="sheetHead">
+        <div class="brand"><div class="mark"></div> <span id="m-title">Ürün</span></div>
+        <button class="x" id="m-close">Kapat ✕</button>
+      </div>
+      <div class="sheetBody">
+        <div class="heroBox" style="display:grid; place-items:center; padding:22px">
+          <!-- Inline SVG preview area -->
+          <div id="m-hero" style="width:100%; aspect-ratio:4/3; display:grid; place-items:center">
+            <!-- injected -->
+          </div>
+        </div>
+        <div>
+          <div class="label">Özet</div>
+          <div id="m-brief" class="sec"></div>
+
+          <div class="label sec">Teknik Özellikler</div>
+          <div id="m-specs" class="specs sec"></div>
+
+          <div class="ctaRow">
+            <button class="cta">Broşür (PDF) – Demo</button>
+            <button class="cta">Teklif Talep (RFQ) – Demo</button>
+          </div>
+          <div class="small sec">Gizlilik Notu: Demo içerik. Gerçek sistemlerde KVKK/MFA/TLS süreçleri uygulanır.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/** ---------- DATA ---------- **/
+const PRODUCTS = [
+  {
+    id:"tb2", name:"Bayraktar TB2 (S/İHA)", cat:["hava"], tags:["UAV","ISR","EO/IR"],
+    brief:"Orta irtifa–uzun havada kalış; keşif–gözetleme ve hassas taarruz kabiliyeti.",
+    specs:{ HavadaKalis:"27+ saat", FaydalıYük:"150 kg", Haberlesme:"LOS/BLOS", Mühimmat:"MAM-L/MAM-C" },
+    icon: droneIcon()
+  },
+  {
+    id:"akinci", name:"Bayraktar AKINCI", cat:["hava","sensör"],
+    tags:["HALE","AESA","SATCOM"],
+    brief:"Yüksek irtifa ağır sınıf SİHA; AESA radar ve çoklu faydalı yük entegrasyonlu.",
+    specs:{ Tavan:"40.000 ft", FaydalıYük:"1350 kg", Sistem:"AESA/SAR-GMTI", Data:"SATCOM" },
+    icon: droneIcon(true)
+  },
+  {
+    id:"kizilelma", name:"Kızılelma (MİUS)", cat:["hava","c2"], tags:["Jet UAV","Otonom","Loyal Wingman"],
+    brief:"Jet motorlu insansız savaş uçağı; düşük görünürlük ve otonom görev icrası.",
+    specs:{ AzamiHiz:"0.9 Mach+", SilahIstasyon:"1500+ kg", Otonomi:"Sürü/Uçuş Yapay Zekâ" },
+    icon: stealthIcon()
+  },
+  {
+    id:"altay", name:"ALTAY Ana Muharebe Tankı", cat:["kara"], tags:["Zırh","120mm","AteşKontrol"],
+    brief:"Modern zırh, dijital atış kontrol ve ağ destekli görev sistemleri.",
+    specs:{ Motor:"1500+ bg", Top:"120mm yivsiz", Mürettebat:"4", Koruma:"Modüler zırh/APS" },
+    icon: tankIcon()
+  },
+  {
+    id:"milgem", name:"MİLGEM Korveti", cat:["deniz","sensör"], tags:["Savaş Gemisi","Sonar","CIC"],
+    brief:"Yerli korvet; çok görevli savaş sistemleri ve modern CIC mimarisi.",
+    specs:{ Deplasman:"2400+ ton", Silah:"76mm top/ESSM", Sensör:"3D radar/sonar", Seyir:"3500+ nm" },
+    icon: shipIcon()
+  },
+  {
+    id:"atmaca", name:"ATMACA Gemisavar Füzesi", cat:["füze","deniz"], tags:["Sea Skimming","INS/GPS","Aktif RF"],
+    brief:"Uzun menzilli gemisavar; deniz yüzeyine paralel uçuş ve terminal aktif radar arayıcı.",
+    specs:{ Menzil:"200+ km", Güdüm:"INS/GPS+RF", HarpB:">220 kg", Platform:"Gemi/Kıyı" },
+    icon: missileIcon()
+  },
+  {
+    id:"hisar", name:"HİSAR-O+ Hava Savunma", cat:["füze","sensör"], tags:["MRAD","RF/EO","C2"],
+    brief:"Orta menzilli hava savunma; ağ merkezli angajman ve çoklu hedef.",
+    specs:{ Menzil:"25+ km", İrtifa:"15+ km", Güdüm:"INS+RF/EO", Angajman:"Çoklu hedef" },
+    icon: launcherIcon()
+  },
+  {
+    id:"gokdogan", name:"Gökdoğan (BVRAAM)", cat:["füze","hava"], tags:["AAM","AESA Arayıcı","BVR"],
+    brief:"Görüş ötesi hava-hava füzesi; yüksek manevra ve aktif RF arayıcı.",
+    specs:{ Menzil:"65+ km (demo)", Güdüm:"INS+Aktif RF", Platform:"Uçak/SİHA", VeriLink:"Çift yönlü" },
+    icon: missileIcon(true)
+  },
+];
+
+/** ---------- RENDER CARDS ---------- **/
+const cardsEl = document.getElementById("cards");
+function renderCards(list){
+  cardsEl.innerHTML = "";
+  list.forEach(p=>{
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="thumb">${p.icon}</div>
+      <div class="title">${p.name}</div>
+      <div class="muted">${p.brief}</div>
+      <div class="tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+      <div class="btnRow">
+        <button class="btn" data-id="${p.id}">Detay</button>
+        <button class="btn" onclick="alert('Demo: Broşür indirme')">Broşür</button>
+      </div>`;
+    cardsEl.appendChild(card);
+    card.querySelector("[data-id]").addEventListener("click", ()=>openModal(p));
+  });
+}
+
+/** ---------- SEARCH + FILTER ---------- **/
+let activeCat = "all";
+const qEl = document.getElementById("search");
+const chips = [...document.querySelectorAll(".chip")];
+
+function applyFilters(){
+  const q = (qEl.value||"").toLowerCase().trim();
+  const filtered = PRODUCTS.filter(p=>{
+    const matchesQ = !q || [p.name, p.brief, ...(p.tags||[])].join(" ").toLowerCase().includes(q);
+    const matchesCat = activeCat==="all" || (p.cat||[]).includes(activeCat);
+    return matchesQ && matchesCat;
+  });
+  renderCards(filtered);
+}
+qEl.addEventListener("input", applyFilters);
+chips.forEach(ch=>{
+  ch.addEventListener("click", ()=>{
+    chips.forEach(c=>c.classList.remove("active"));
+    ch.classList.add("active");
+    activeCat = ch.dataset.cat;
+    applyFilters();
+  });
+});
+
+renderCards(PRODUCTS);
+
+/** ---------- MODAL ---------- **/
+const modal = document.getElementById("modal");
+const mTitle = document.getElementById("m-title");
+const mBrief = document.getElementById("m-brief");
+const mSpecs = document.getElementById("m-specs");
+const mHero  = document.getElementById("m-hero");
+document.getElementById("m-close").addEventListener("click", closeModal);
+modal.addEventListener("click", e=>{ if(e.target.classList.contains("glass")) closeModal(); });
+
+function openModal(p){
+  mTitle.textContent = p.name;
+  mBrief.textContent = p.brief;
+  mSpecs.innerHTML = "";
+  Object.entries(p.specs||{}).forEach(([k,v])=>{
+    const row = document.createElement("div");
+    row.className = "spec";
+    row.innerHTML = `<span class="muted">${k}</span><span>${v}</span>`;
+    mSpecs.appendChild(row);
+  });
+  mHero.innerHTML = p.icon;
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden","false");
+}
+function closeModal(){
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden","true");
+}
+
+/** ---------- INLINE SVG ICONS (minimal, crisp, futuristic) ---------- **/
+function strokeAttrs(){ return 'fill="none" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'; }
+function defs(){
+  return `
+    <defs>
+      <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#5ee6ff"/><stop offset="1" stop-color="#7c5cff"/>
+      </linearGradient>
+      <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+        <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#7c5cff" flood-opacity=".35"/>
+      </filter>
+    </defs>`;
+}
+function wrap(svg){ return `<svg viewBox="0 0 220 140" width="100%" height="100%">${defs()}<g filter="url(#glow)">${svg}</g></svg>`; }
+
+function droneIcon(heavy=false){
+  return wrap(`
+    <path ${strokeAttrs()} d="M20 70h60m60 0h60" />
+    <rect ${strokeAttrs()} x="90" y="55" rx="8" ry="8" width="40" height="30"/>
+    <circle ${strokeAttrs()} cx="30" cy="70" r="18"/><circle ${strokeAttrs()} cx="190" cy="70" r="18"/>
+    ${heavy? `<path ${strokeAttrs()} d="M110 85v20m0-40v-20" />` : ``}
+  `);
+}
+function stealthIcon(){
+  return wrap(`<path ${strokeAttrs()} d="M20 90l90-40 90 40-90-10-90 10z M110 50v30" />`);
+}
+function tankIcon(){
+  return wrap(`
+    <rect ${strokeAttrs()} x="50" y="70" width="120" height="30" rx="6"/>
+    <rect ${strokeAttrs()} x="70" y="58" width="70" height="14" rx="4"/>
+    <path ${strokeAttrs()} d="M140 64h50" />
+    <circle ${strokeAttrs()} cx="70" cy="105" r="10"/><circle ${strokeAttrs()} cx="110" cy="105" r="10"/><circle ${strokeAttrs()} cx="150" cy="105" r="10"/>
+  `);
+}
+function shipIcon(){
+  return wrap(`
+    <path ${strokeAttrs()} d="M30 90h160l-14 18H44L30 90z" />
+    <rect ${strokeAttrs()} x="90" y="60" width="40" height="18" rx="3"/>
+    <path ${strokeAttrs()} d="M110 60v-16m-8 16h16" />
+  `);
+}
+function missileIcon(vertical=false){
+  return wrap(vertical ? `
+    <path ${strokeAttrs()} d="M110 20v80" />
+    <path ${strokeAttrs()} d="M100 50h20M100 70h20" />
+    <path ${strokeAttrs()} d="M110 100l-10 20h20l-10-20z" />
+  `:`
+    <path ${strokeAttrs()} d="M40 80h100" />
+    <path ${strokeAttrs()} d="M140 80l30 10-30 10z" />
+    <path ${strokeAttrs()} d="M60 65v30M80 65v30" />
+  `);
+}
+function launcherIcon(){
+  return wrap(`
+    <rect ${strokeAttrs()} x="40" y="80" width="140" height="18" rx="3"/>
+    <rect ${strokeAttrs()} x="60" y="54" width="32" height="22" rx="2"/>
+    <rect ${strokeAttrs()} x="100" y="54" width="32" height="22" rx="2"/>
+    <rect ${strokeAttrs()} x="140" y="54" width="32" height="22" rx="2"/>
+  `);
+}
+</script>
+</body>
+</html>
+
